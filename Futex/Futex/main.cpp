@@ -7,14 +7,15 @@
 #include <ctime>
 #include <mutex>
 
-class futex {
+class Futex {
 public:
-    futex();
-    bool lock();
-    bool unlock();
-    futex(const futex&) = delete;
+    Futex();
+    bool lock(int);
+    bool unlock(int);
+    Futex(const Futex&) = delete;
 
 private:
+    int hash;
     std::atomic<int> ownerId;
 };
 
@@ -26,89 +27,145 @@ desired = x;
 return false;
 }
 */
-futex::futex()
+Futex::Futex()
 {
-    ownerId = -1;
+    ownerId.store(std::hash<std::thread::id>()(std::this_thread::get_id()));
+    hash = std::hash<std::thread::id>()(std::this_thread::get_id());
 }
 
-bool futex::lock()
+bool Futex::lock(int idHash)
 {
-    int desired = -1;
-    int idHash = std::this_thread::get_id().hash();
+    int desired = hash;
     while (!ownerId.compare_exchange_strong(desired, idHash)) {
-        desired = -1;
+        desired = hash;
+        std::this_thread::yield();
     }
     return true;
 }
 
-bool futex::unlock()
+bool Futex::unlock(int idHash)
 {
-    int idHash = std::this_thread::get_id().hash();
     int desired = idHash;
-    while (!ownerId.compare_exchange_strong(desired, -1)) {
-        desired = idHash;
+    if (!ownerId.compare_exchange_strong(desired, hash)) {
+        assert(false);
     }
     return true;
 }
 
-std::mutex locking;
-//futex locking;
+std::mutex mlocking;
+Futex flocking;
 
-int ans = 0;
-int maximum = 1e7;
+long long ans = 0;
+long long maximum = 1e7;
 
-int inc(int & x)
+int incFutex(long long & x)
 {
+    int thisHash = std::hash<std::thread::id>()(std::this_thread::get_id());
     while (true) {
-        locking.lock();
+        flocking.lock(thisHash);
         if (ans >= maximum) {
-            locking.unlock();
+            flocking.unlock(thisHash);
             break;
         }
         ++ans;
         ++x;
-        locking.unlock();
+        flocking.unlock(thisHash);
     }
-    return ans;
+    return 0;
+}
+
+int incMutex(long long & x)
+{
+    while (true) {
+        mlocking.lock();
+        if (ans >= maximum) {
+            mlocking.unlock();
+            break;
+        }
+        ++ans;
+        ++x;
+        mlocking.unlock();
+    }
+    return 0;
+}
+
+void runTestFutex(int threadsNumber, long long limit)
+{
+    ans = 0;
+    maximum = limit;
+    std::cout << "N threads = " << threadsNumber << std::endl;
+    std::cout << "max = " << limit << std::endl;
+    std::vector<std::thread *> t(threadsNumber);
+    std::vector<long long> each(threadsNumber, 0);
+    std::chrono::time_point<std::chrono::system_clock> start, end;
+    start = std::chrono::system_clock::now();
+    for (int i = 0; i < threadsNumber; ++i) {
+        t[i] = new std::thread(incFutex, std::ref(each[i]));
+    }
+    for (int i = 0; i < threadsNumber; ++i) {
+        t[i]->join();
+    }
+    long long sum = 0;
+    end = std::chrono::system_clock::now();
+    for (int i = 0; i < threadsNumber; ++i) {
+        std::cout << each[i] << ' ';
+        sum += each[i];
+    }
+    std::cout << std::endl << sum << ' ' << ans << std::endl;
+
+    long long elapsed_seconds = std::chrono::duration_cast<std::chrono::milliseconds>
+        (end - start).count();
+    std::cout << "elapsed time: " << elapsed_seconds << "ms" << std::endl;
+    std::cout << std::endl;
+    t.clear();
+}
+
+void runTestMutex(int threadsNumber, long long limit)
+{
+    ans = 0;
+    maximum = limit;
+    std::cout << "N threads = " << threadsNumber << std::endl;
+    std::cout << "max = " << limit << std::endl;
+    std::vector<std::thread *> t(threadsNumber);
+    std::vector<long long> each(threadsNumber, 0);
+    std::chrono::time_point<std::chrono::system_clock> start, end;
+    start = std::chrono::system_clock::now();
+    for (int i = 0; i < threadsNumber; ++i) {
+        t[i] = new std::thread(incMutex, std::ref(each[i]));
+    }
+    for (int i = 0; i < threadsNumber; ++i) {
+        t[i]->join();
+    }
+    long long sum = 0;
+    end = std::chrono::system_clock::now();
+    for (int i = 0; i < threadsNumber; ++i) {
+        std::cout << each[i] << ' ';
+        sum += each[i];
+    }
+    std::cout << std::endl << sum << ' ' << ans << std::endl;
+
+    long long elapsed_seconds = std::chrono::duration_cast<std::chrono::milliseconds>
+        (end - start).count();
+    std::cout << "elapsed time: " << elapsed_seconds << "ms" << std::endl;
+    std::cout << std::endl;
+    t.clear();
 }
 
 int main()
 {
-    int threadsNumber;
+    int kernelsNumber = std::thread::hardware_concurrency();
+    std::cout << "std::thread::hardware_concurrency() = " << kernelsNumber << std::endl;
+    std::vector<int> threadsNumber(3);
+    threadsNumber[0] = kernelsNumber / 2;
+    threadsNumber[1] = kernelsNumber;
+    threadsNumber[2] = kernelsNumber * 2;
     for (int k = 0; k < 6; ++k) {
         ans = 0;
-        maximum = 2 * 1e6;
-        if (k > 2)
-            maximum = 1e7;
-        if (k % 3 == 0)
-            threadsNumber = std::thread::hardware_concurrency();
-        else
-            if (k % 3 == 1)
-                threadsNumber = std::thread::hardware_concurrency() / 2;
-            else
-                threadsNumber = std::thread::hardware_concurrency() * 2;
-        std::vector<std::thread *> t;
-        std::vector<int> each;
-        each.resize(threadsNumber, 0);
-        std::chrono::time_point<std::chrono::system_clock> start, end;
-        start = std::chrono::system_clock::now();
-        for (int i = 0; i < threadsNumber; ++i) {
-            t.push_back(new std::thread(inc, std::ref(each[i])));
-        }
-        for (int i = 0; i < threadsNumber; ++i) {
-            t[i]->join();
-        }
-        int sum = 0;
-        end = std::chrono::system_clock::now();
-        for (int i = 0; i < threadsNumber; ++i) {
-            std::cout << each[i] << ' ';
-            sum += each[i];
-        }
-        std::cout << std::endl << sum << ' ' << ans << std::endl;
-
-        int elapsed_seconds = std::chrono::duration_cast<std::chrono::milliseconds>
-            (end - start).count();
-        std::cout << "elapsed time: " << elapsed_seconds << "ms\n";
+        long long limit = (k < 3 ? 1e7 : 5e8);
+        std::cout << "ran futex" << std::endl;
+        runTestFutex(threadsNumber[k % 3], limit);
+        std::cout << "ran mutex" << std::endl;
+        runTestMutex(threadsNumber[k % 3], limit);
     }
     system("pause");
     return 0;
