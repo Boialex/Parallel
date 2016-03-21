@@ -110,16 +110,28 @@ bool testWait(int writeN, int readN, int writers, int readers)
         std::cout << "error read in popOrWait" << std::endl;
         for (int i = 0; i < output.size(); ++i)
             delete output[i];
+        for (int i = 0; i < w.size(); ++i)
+            delete w[i];
+        for (int i = 0; i < r.size(); ++i)
+            delete r[i];
         return false;
     }
     if (sum + data.size() != writeN * writers) {
         std::cout << "error read & write together in popOrWait" << std::endl;
         for (int i = 0; i < output.size(); ++i)
             delete output[i];
+        for (int i = 0; i < w.size(); ++i)
+            delete w[i];
+        for (int i = 0; i < r.size(); ++i)
+            delete r[i];
         return false;
     }
     for (int i = 0; i < output.size(); ++i)
         delete output[i];
+    for (int i = 0; i < w.size(); ++i)
+        delete w[i];
+    for (int i = 0; i < r.size(); ++i)
+        delete r[i];
     return true;
 }
 
@@ -150,16 +162,28 @@ bool testNoWait(int writeN, int readN, int writers, int readers)
         std::cout << "error read in popNoWait" << std::endl;
         for (int i = 0; i < output.size(); ++i)
             delete output[i];
+        for (int i = 0; i < w.size(); ++i)
+            delete w[i];
+        for (int i = 0; i < r.size(); ++i)
+            delete r[i];
         return false;
     }
     if (sum + data.size() != writeN * writers) {
         std::cout << "error read & write together in popNoWait" << std::endl;
         for (int i = 0; i < output.size(); ++i)
             delete output[i];
+        for (int i = 0; i < w.size(); ++i)
+            delete w[i];
+        for (int i = 0; i < r.size(); ++i)
+            delete r[i];
         return false;
     }
     for (int i = 0; i < output.size(); ++i)
         delete output[i];
+    for (int i = 0; i < w.size(); ++i)
+        delete w[i];
+    for (int i = 0; i < r.size(); ++i)
+        delete r[i];
     return true;
 }
 
