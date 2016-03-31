@@ -22,7 +22,6 @@ void stack<T>::push(const T& _data)
     Node<T> * d = new Node<T>(_data);
     d->next = HEAD.load();
     while (!HEAD.compare_exchange_strong(d->next, d));
-    //delete d;
 }
 
 template <class T>
@@ -34,6 +33,6 @@ bool stack<T>::pop(T& _data)
             return false;
     } while (!HEAD.compare_exchange_strong(a, a->next));
     _data = a->data;
-    //delete a;
+    delete a;
     return true;
 }
