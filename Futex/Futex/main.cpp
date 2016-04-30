@@ -29,8 +29,8 @@ return false;
 */
 Futex::Futex()
 {
-    ownerId.store(std::hash<std::thread::id>()(std::this_thread::get_id()));
-    hash = std::hash<std::thread::id>()(std::this_thread::get_id());
+    ownerId.store(-1);
+    hash = -1;
 }
 
 bool Futex::lock(int idHash)
@@ -167,6 +167,10 @@ int main()
         std::cout << "ran mutex" << std::endl;
         runTestMutex(threadsNumber[k % 3], limit);
     }
+    
+    flocking.lock(std::hash<std::thread::id>()(std::this_thread::get_id()));
+    std::cout << std::endl << "main thread test OK" << std::endl;
+    flocking.unlock(std::hash<std::thread::id>()(std::this_thread::get_id()));
     system("pause");
     return 0;
 }
