@@ -1,0 +1,15 @@
+with acquire - release  | without
+1e7
+threads = 2	345 ms     366 ms
+
+threads = 4     478 ms     497 ms
+
+threads = 8     395 ms     403 ms
+
+5e8
+threads = 2   16698 ms   16905 ms
+
+threads = 4   22285 ms   23032 ms
+
+threads = 8   20253 ms   19952 ms
+
