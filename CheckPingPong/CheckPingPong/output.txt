@@ -1,0 +1,3 @@
+elapsed time: 
+with PingPong: 5873 ms
+without PingPong: 3967 ms
