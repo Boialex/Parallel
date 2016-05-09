@@ -37,7 +37,7 @@ Futex::Futex()
 bool Futex::lock(int idHash)
 {
     int desired = hash;
-    while (!ownerId.compare_exchange_strong(desired, idHash, std::memory_order_acquire)) {
+    while (!ownerId.compare_exchange_strong(desired, idHash, std::memory_order_relaxed)) {
         desired = hash;
         std::this_thread::yield();
     }
@@ -47,7 +47,7 @@ bool Futex::lock(int idHash)
 bool Futex::unlock(int idHash)
 {
     int desired = idHash;
-    if (!ownerId.compare_exchange_strong(desired, hash, std::memory_order_release)) {
+    if (!ownerId.compare_exchange_strong(desired, hash, std::memory_order_relaxed)) {
         assert(false);
     }
     return true;
@@ -56,7 +56,7 @@ bool Futex::unlock(int idHash)
 std::mutex mlocking;
 Futex flocking;
 
-long long ans = 0;
+volatile long long ans = 0;
 long long maximum = 1e7;
 
 int incFutex(long long & x)

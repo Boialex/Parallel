@@ -1,0 +1,15 @@
+with relaxed  | without(syn_order)
+1e7
+threads = 2	345 ms     341 ms
+
+threads = 4     467 ms     454 ms
+
+threads = 8     406 ms     402 ms
+
+5e8
+threads = 2   16739 ms   16915 ms
+
+threads = 4   22848 ms   22951 ms
+
+threads = 8   20036 ms   20204 ms
+
