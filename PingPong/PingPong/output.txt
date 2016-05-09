@@ -1,3 +1,0 @@
-elapsed time
-with ping pong problem: 6288 ms
-without ping pong problem: 3637 ms
