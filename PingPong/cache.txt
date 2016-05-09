@@ -1,8 +1,8 @@
-Если я правильно понял вывод программы, то
+Р•СЃР»Рё СЏ РїСЂР°РІРёР»СЊРЅРѕ РїРѕРЅСЏР» РІС‹РІРѕРґ РїСЂРѕРіСЂР°РјРјС‹, С‚Рѕ
 Processor		Intel Core i7 4510U
 L1 Data cache		2 x 32 KBytes, 8-way set associative, 64-byte line size
 
-Более подробно ниже.
+Р‘РѕР»РµРµ РїРѕРґСЂРѕР±РЅРѕ РЅРёР¶Рµ.
 
 CPU-Z TXT Report
 -------------------------------------------------------------------------
@@ -45,7 +45,7 @@ Processor 1			ID = 0
 	Core Stepping		C0
 	Technology		22 nm
 	TDP Limit		15.0 Watts
-	Tjmax			100.0 °C
+	Tjmax			100.0 В°C
 	Core Speed		2793.3 MHz
 	Multiplier x Bus Speed	28.0 x 99.8 MHz
 	Stock frequency		2000 MHz
